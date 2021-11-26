@@ -12,6 +12,7 @@ Scenario:
 
 """
 from numpy import random
+import queue
 import simpy
 
 
@@ -22,19 +23,20 @@ class QueueData:
         self.n_queue = []
 
 
-def source(env, counter,  arrival_rate, capacity_server, data):
+def source(env, counter,  arrival_rate, capacity_server, data, rng):
     """Source generates customers randomly"""
     # for i in range(number):
     i = 0
     while True:
-        c = customer(env, 'Customer%02d' % i, counter, capacity_server, data)
+        c = customer(
+                env, 'Customer%02d' % i, counter, capacity_server, data, rng)
         env.process(c)
-        t = random.exponential(scale=1/arrival_rate, size=None)
+        t = rng.exponential(scale=1/arrival_rate, size=None)
         yield env.timeout(t)
         i += 1
 
 
-def customer(env, name, counter, capacity_server, data):
+def customer(env, name, counter, capacity_server, data, rng):
     """Customer arrives, is served and leaves."""
     arrive = env.now
     #print('%7.4f %s: Here I am' % (arrive, name))
@@ -49,29 +51,37 @@ def customer(env, name, counter, capacity_server, data):
         data.n_queue.append(len(counter.queue)) #amount of people in queue
 
         # time of service
-        tib = random.exponential(scale=1/capacity_server, size=None)
+        tib = rng.exponential(scale=1/capacity_server, size=None)
         yield env.timeout(tib)
         #print('%7.4f %s: Finished' % (env.now, name))
 
 
 def run_queue_experiment(
-        random_seed,
+        rng,
         time,
         arrival_rate,
         capacity_server,
         n_server=1,
-        queueing_discipline="FIFO"):
+        queueing_discipline="FIFO"
+):
     data = QueueData()
 
-    # Setup and start the simulation
-    #print('DES start')
-    #print(queueing_discipline)
-    random.seed(random_seed)
     env = simpy.Environment()
 
-    # Start processes and run
     counter = simpy.Resource(env, capacity=n_server)
-    env.process(source(env, counter, arrival_rate, capacity_server, data))
+    env.process(source(env, counter, arrival_rate, capacity_server, data, rng))
     env.run(until=time)
 
     return data
+
+
+def vary_t_worker(q, d, rng, arrival_rate, capacity_server, n_server):
+    while True:
+        try:
+            t, i = q.get_nowait()
+        except queue.Empty:
+            break
+
+        queue_data = run_queue_experiment(rng, t, arrival_rate, capacity_server,
+                                          n_server=n_server)
+        d[i].append(queue_data)
