@@ -19,6 +19,7 @@ class QueueData:
     def __init__(self):
         self.times = []
         self.wait_times = []
+        self.n_queue = []
 
 
 def source(env, counter,  arrival_rate, capacity_server, data):
@@ -45,6 +46,7 @@ def customer(env, name, counter, capacity_server, data):
         #print('%7.4f %s: Waited %6.3f' % (env.now, name, wait))
         data.times.append(arrive)
         data.wait_times.append(wait)
+        data.n_queue.append(len(counter.queue)) #amount of people in queue
 
         # time of service
         tib = random.exponential(scale=1/capacity_server, size=None)
@@ -62,8 +64,8 @@ def run_queue_experiment(
     data = QueueData()
 
     # Setup and start the simulation
-    print('DES start')
-    print(queueing_discipline)
+    #print('DES start')
+    #print(queueing_discipline)
     random.seed(random_seed)
     env = simpy.Environment()
 
