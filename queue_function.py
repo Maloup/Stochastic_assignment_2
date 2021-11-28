@@ -11,6 +11,7 @@ Scenario:
   program bank08.py from TheBank tutorial of SimPy 2. (KGM)
 
 """
+import numpy as np
 from numpy import random
 import queue
 import simpy
@@ -57,12 +58,12 @@ def customer(env, name, counter, capacity_server, data, rng):
 
 
 def run_queue_experiment(
-        rng,
-        time,
-        arrival_rate,
-        capacity_server,
-        n_server=1,
-        queueing_discipline="FIFO"
+    rng,
+    time,
+    arrival_rate,
+    capacity_server,
+    n_server=1,
+    queueing_discipline="FIFO"
 ):
     data = QueueData()
 
@@ -84,4 +85,5 @@ def vary_t_worker(q, d, rng, arrival_rate, capacity_server, n_server):
 
         queue_data = run_queue_experiment(rng, t, arrival_rate, capacity_server,
                                           n_server=n_server)
-        d[i].append(queue_data)
+        mean_wait_time = np.mean(queue_data.wait_times)
+        d[i].append(mean_wait_time)
