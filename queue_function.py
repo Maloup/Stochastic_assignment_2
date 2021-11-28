@@ -43,8 +43,24 @@ def customer(env, counter, data, tib):
     arrive = env.now
     #print('%7.4f %s: Here I am' % (arrive, name))
 
+    if isinstance(counter, simpy.PriorityResource):
+        #SPTF code
+        prio = int(tib*1e4)
+        with counter.request(priority=prio) as req:
+            yield req
+            wait = env.now - arrive
+            # We got to the counter
+            #print('%7.4f %s: Waited %6.3f' % (env.now, name, wait))
+            data.times.append(arrive)
+            data.wait_times.append(wait)
+            data.n_queue.append(len(counter.queue)) #amount of people in queue
 
-    if isinstance(counter, simpy.Resource):
+            # time of service
+            yield env.timeout(tib)
+            #print('%7.4f %s: Finished' % (env.now, name))
+
+    
+    elif isinstance(counter, simpy.Resource):
         #FIFO code
         with counter.request() as req:
             yield req
@@ -59,21 +75,7 @@ def customer(env, counter, data, tib):
             yield env.timeout(tib)
             #print('%7.4f %s: Finished' % (env.now, name))
 
-    elif isinstance(counter, simpy.PriorityResource):
-         #SPTF code
-         prio = int(tib*1e4)
-         with counter.request(priority=prio) as req:
-            yield req
-            wait = env.now - arrive
-            # We got to the counter
-            #print('%7.4f %s: Waited %6.3f' % (env.now, name, wait))
-            data.times.append(arrive)
-            data.wait_times.append(wait)
-            data.n_queue.append(len(counter.queue)) #amount of people in queue
 
-            # time of service
-            yield env.timeout(tib)
-            #print('%7.4f %s: Finished' % (env.now, name))
 
 
 
@@ -101,12 +103,13 @@ def run_queue_experiment(
 
 
 def vary_t_worker(q, d, rng, arrival_rate, capacity_server, n_server,
-                  queueing_discipline="FIFO"):
+                  queueing_discipline):
     while True:
         try:
             t, i = q.get_nowait()
         except queue.Empty:
             break
+
 
         queue_data = run_queue_experiment(rng, t, arrival_rate, capacity_server,
                                           n_server=n_server,
