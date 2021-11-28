@@ -100,7 +100,8 @@ def run_queue_experiment(
     return data
 
 
-def vary_t_worker(q, d, rng, arrival_rate, capacity_server, n_server):
+def vary_t_worker(q, d, rng, arrival_rate, capacity_server, n_server,
+                  queueing_discipline="FIFO"):
     while True:
         try:
             t, i = q.get_nowait()
@@ -108,7 +109,8 @@ def vary_t_worker(q, d, rng, arrival_rate, capacity_server, n_server):
             break
 
         queue_data = run_queue_experiment(rng, t, arrival_rate, capacity_server,
-                                          n_server=n_server)
+                                          n_server=n_server,
+                                          queueing_discipline=queueing_discipline)
         mean_wait_time = np.mean(queue_data.wait_times)
         d[i].append(mean_wait_time)
 
