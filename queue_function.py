@@ -58,7 +58,7 @@ def customer(env, counter, data, tib):
             # time of service
             yield env.timeout(tib)
             #print('%7.4f %s: Finished' % (env.now, name))
-    
+
     elif isinstance(counter, simpy.PriorityResource):
          #SPTF code
          prio = int(tib*1e4)
@@ -88,11 +88,11 @@ def run_queue_experiment(
     data = QueueData()
     env = simpy.Environment()
 
-    if queueing_discipline.upper() == "FIFO": 
+    if queueing_discipline.upper() == "FIFO":
         counter = simpy.Resource(env, capacity=n_server)
     elif queueing_discipline.upper() == "SPTF":
         counter = simpy.PriorityResource(env, capacity=n_server)
-    else: 
+    else:
         raise Exception("Not a correct discipline. Check again.")
 
     env.process(source(env, counter, arrival_rate, capacity_server, data, rng))
@@ -120,7 +120,7 @@ def vary_rho_worker(q, d, rng, t, capacity_server, n_server):
         except queue.Empty:
             break
 
-        queue_data = run_queue_experiment(rng, t, rho*capacity_server, capacity_server,
-                                          n_server=n_server)
+        queue_data = run_queue_experiment(rng, t, rho*capacity_server*n_server,
+                                          capacity_server, n_server=n_server)
         mean_wait_time = np.mean(queue_data.wait_times)
         d[i].append(mean_wait_time)
