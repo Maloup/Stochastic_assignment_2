@@ -129,3 +129,16 @@ def vary_rho_worker(q, d, rng, t, capacity_server, n_server):
                                           capacity_server, n_server=n_server)
         mean_wait_time = np.mean(queue_data.wait_times)
         d[i].append(mean_wait_time)
+
+
+def expected_waiting_time(lambda_, mu, c):
+    rho = lambda_/(c*mu)
+    def B(c, rho):
+        if c == 0:
+            return 1
+        b = B(c - 1, rho)
+        return (rho*b)/(c + rho*b)
+
+    b = B(c - 1, c*rho)
+    Pi_W = (rho*b)/(1 - rho + rho * b)
+    return Pi_W * (1/((c*mu)*(1 - rho)))
