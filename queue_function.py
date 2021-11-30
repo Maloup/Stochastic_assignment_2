@@ -24,12 +24,29 @@ class QueueData:
         self.n_queue = []
 
 
-def source(env, counter,  arrival_rate, capacity_server, data, rng):
+def tib_exponential(rng, capacity_server):
+    return rng.exponential(scale=1/capacity_server, size = None)
+
+def tib_deterministic(_, capacity_server):
+    return 1/capacity_server
+
+def tib_hyp_exponential(rng, capacity_server):
+    if rng.uniform() < 0.75:
+        tib =  rng.exponential(scale=1/capacity_server, size = None)
+    else: 
+        tib = rng.exponential(scale=1/(capacity_server*5), size = None)
+    return tib
+
+
+
+
+
+def source(env, counter,  arrival_rate, capacity_server, data, rng, tib_func):
     """Source generates customers randomly"""
     # for i in range(number):
     i = 0
     while True:
-        tib = rng.exponential(scale=1/capacity_server, size=None)
+        tib = tib_func(rng, capacity_server)
         c = customer(
                 env, counter, data, tib)
         env.process(c)
@@ -85,7 +102,9 @@ def run_queue_experiment(
     arrival_rate,
     capacity_server,
     n_server=1,
-    queueing_discipline="FIFO"
+    queueing_discipline="FIFO", 
+    tib_func = tib_exponential
+
 ):
     data = QueueData()
     env = simpy.Environment()
@@ -97,7 +116,7 @@ def run_queue_experiment(
     else:
         raise Exception("Not a correct discipline. Check again.")
 
-    env.process(source(env, counter, arrival_rate, capacity_server, data, rng))
+    env.process(source(env, counter, arrival_rate, capacity_server, data, rng, tib_func))
     env.run(until=time)
     return data
 
