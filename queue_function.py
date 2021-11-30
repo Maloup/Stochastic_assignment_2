@@ -33,7 +33,7 @@ def tib_deterministic(_, capacity_server):
 def tib_hyp_exponential(rng, capacity_server):
     if rng.uniform() < 0.75:
         tib =  rng.exponential(scale=1/capacity_server, size = None)
-    else: 
+    else:
         tib = rng.exponential(scale=1/(capacity_server*5), size = None)
     return tib
 
@@ -62,7 +62,7 @@ def customer(env, counter, data, tib):
 
     if isinstance(counter, simpy.PriorityResource):
         #SPTF code
-        prio = int(tib*1e4)
+        prio = tib
         with counter.request(priority=prio) as req:
             yield req
             wait = env.now - arrive
@@ -75,8 +75,6 @@ def customer(env, counter, data, tib):
             # time of service
             yield env.timeout(tib)
             #print('%7.4f %s: Finished' % (env.now, name))
-
-    
     elif isinstance(counter, simpy.Resource):
         #FIFO code
         with counter.request() as req:
@@ -102,7 +100,7 @@ def run_queue_experiment(
     arrival_rate,
     capacity_server,
     n_server=1,
-    queueing_discipline="FIFO", 
+    queueing_discipline="FIFO",
     tib_func = tib_exponential
 
 ):
