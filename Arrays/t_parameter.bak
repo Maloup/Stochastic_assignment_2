@@ -1,2 +1,5 @@
-'vary_t_results', (1536, 30754)
 't_range', (1024, 233)
+'vary_t_results_0.5', (32768, 30754)
+'vary_t_results_0.7', (64000, 30754)
+'vary_t_results_0.95', (95232, 30754)
+'vary_t_results_0.9', (126464, 30754)
