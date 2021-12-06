@@ -1,5 +1,6 @@
 from numpy.random import Generator, MT19937, SeedSequence
 
+
 def initialize_parallel_rngs(n, seed):
     """
     Initializes `n` Mersenne Twister PRNGs and advance each PRGNS by 2^128 steps to avoid

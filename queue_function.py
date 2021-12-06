@@ -1,16 +1,8 @@
 """
-Bank renege example
-
-Covers:
-
-- Resources: Resource
-- Condition events
-
-Scenario:
-  A counter with a random service time and customers who renege. Based on the
-  program bank08.py from TheBank tutorial of SimPy 2. (KGM)
-
+Code is based on the following SimPy example:
+    https://simpy.readthedocs.io/en/latest/examples/bank_renege.html
 """
+
 import numpy as np
 from numpy import random
 import queue
@@ -25,20 +17,19 @@ class QueueData:
 
 
 def tib_exponential(rng, capacity_server):
-    return rng.exponential(scale=1/capacity_server, size = None)
+    return rng.exponential(scale=1/capacity_server, size=None)
+
 
 def tib_deterministic(_, capacity_server):
     return 1/capacity_server
 
+
 def tib_hyp_exponential(rng, capacity_server):
     if rng.uniform() < 0.75:
-        tib =  rng.exponential(scale=1/capacity_server, size = None)
+        tib = rng.exponential(scale=1/capacity_server, size=None)
     else:
-        tib = rng.exponential(scale=1/(capacity_server*5), size = None)
+        tib = rng.exponential(scale=1/(capacity_server*5), size=None)
     return tib
-
-
-
 
 
 def source(env, counter,  arrival_rate, capacity_server, data, rng, tib_func):
@@ -48,7 +39,7 @@ def source(env, counter,  arrival_rate, capacity_server, data, rng, tib_func):
     while True:
         tib = tib_func(rng, capacity_server)
         c = customer(
-                env, counter, data, tib)
+            env, counter, data, tib)
         env.process(c)
         t = rng.exponential(scale=1/arrival_rate, size=None)
         yield env.timeout(t)
@@ -61,7 +52,7 @@ def customer(env, counter, data, tib):
     #print('%7.4f %s: Here I am' % (arrive, name))
 
     if isinstance(counter, simpy.PriorityResource):
-        #SPTF code
+        # SPTF code
         prio = tib
         with counter.request(priority=prio) as req:
             yield req
@@ -70,13 +61,14 @@ def customer(env, counter, data, tib):
             #print('%7.4f %s: Waited %6.3f' % (env.now, name, wait))
             data.times.append(arrive)
             data.wait_times.append(wait)
-            data.n_queue.append(len(counter.queue)) #amount of people in queue
+            # amount of people in queue
+            data.n_queue.append(len(counter.queue))
 
             # time of service
             yield env.timeout(tib)
             #print('%7.4f %s: Finished' % (env.now, name))
     elif isinstance(counter, simpy.Resource):
-        #FIFO code
+        # FIFO code
         with counter.request() as req:
             yield req
             wait = env.now - arrive
@@ -84,14 +76,12 @@ def customer(env, counter, data, tib):
             #print('%7.4f %s: Waited %6.3f' % (env.now, name, wait))
             data.times.append(arrive)
             data.wait_times.append(wait)
-            data.n_queue.append(len(counter.queue)) #amount of people in queue
+            # amount of people in queue
+            data.n_queue.append(len(counter.queue))
 
             # time of service
             yield env.timeout(tib)
             #print('%7.4f %s: Finished' % (env.now, name))
-
-
-
 
 
 def run_queue_experiment(
@@ -101,7 +91,7 @@ def run_queue_experiment(
     capacity_server,
     n_server=1,
     queueing_discipline="FIFO",
-    tib_func = tib_exponential
+    tib_func=tib_exponential
 
 ):
     data = QueueData()
@@ -114,7 +104,8 @@ def run_queue_experiment(
     else:
         raise Exception("Not a correct discipline. Check again.")
 
-    env.process(source(env, counter, arrival_rate, capacity_server, data, rng, tib_func))
+    env.process(source(env, counter, arrival_rate,
+                capacity_server, data, rng, tib_func))
     env.run(until=time)
     return data
 
@@ -126,7 +117,6 @@ def vary_t_worker(q, d, rng, arrival_rate, capacity_server, n_server,
             t, i = q.get_nowait()
         except queue.Empty:
             break
-
 
         queue_data = run_queue_experiment(rng, t, arrival_rate, capacity_server,
                                           n_server=n_server,
@@ -150,6 +140,7 @@ def vary_rho_worker(q, d, rng, t, capacity_server, n_server):
 
 def expected_waiting_time(lambda_, mu, c):
     rho = lambda_/(c*mu)
+
     def B(c, rho):
         if c == 0:
             return 1
