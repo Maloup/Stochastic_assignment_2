@@ -34,7 +34,7 @@ def tib_hyp_exponential(rng, capacity_server):
 
 def source(env, counter,  arrival_rate, capacity_server, data, rng, tib_func):
     """Source generates customers randomly"""
-    # for i in range(number):
+
     i = 0
     while True:
         tib = tib_func(rng, capacity_server)
@@ -49,7 +49,6 @@ def source(env, counter,  arrival_rate, capacity_server, data, rng, tib_func):
 def customer(env, counter, data, tib):
     """Customer arrives, is served and leaves."""
     arrive = env.now
-    #print('%7.4f %s: Here I am' % (arrive, name))
 
     if isinstance(counter, simpy.PriorityResource):
         # SPTF code
@@ -57,31 +56,21 @@ def customer(env, counter, data, tib):
         with counter.request(priority=prio) as req:
             yield req
             wait = env.now - arrive
-            # We got to the counter
-            #print('%7.4f %s: Waited %6.3f' % (env.now, name, wait))
             data.times.append(arrive)
             data.wait_times.append(wait)
-            # amount of people in queue
             data.n_queue.append(len(counter.queue))
 
-            # time of service
             yield env.timeout(tib)
-            #print('%7.4f %s: Finished' % (env.now, name))
     elif isinstance(counter, simpy.Resource):
         # FIFO code
         with counter.request() as req:
             yield req
             wait = env.now - arrive
-            # We got to the counter
-            #print('%7.4f %s: Waited %6.3f' % (env.now, name, wait))
             data.times.append(arrive)
             data.wait_times.append(wait)
-            # amount of people in queue
             data.n_queue.append(len(counter.queue))
 
-            # time of service
             yield env.timeout(tib)
-            #print('%7.4f %s: Finished' % (env.now, name))
 
 
 def run_queue_experiment(
